@@ -35,3 +35,8 @@ class SpotifyClient(ABC):
     def add_tracks(self, access_token: str, playlist_id: str, uris: list[str]) -> None:
         """Spotify caps this at 100 URIs per call — implementation must chunk internally."""
         ...
+
+    @abstractmethod
+    def get_user_playlists(self, access_token: str) -> list[dict]:
+        """Return the current user's playlists (id, name, track count, etc.)."""
+        ...
