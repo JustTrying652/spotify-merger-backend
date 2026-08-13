@@ -48,7 +48,15 @@ class OfficialSpotipyClient(SpotifyClient):
         while results["next"]:
             results = sp.next(results)
             playlists.extend(results["items"])
-        return [
-            {"id": p["id"], "name": p["name"], "track_count": p["tracks"]["total"], "image": (p["images"][0]["url"] if p["images"] else None)}
-            for p in playlists
-        ]
+
+        cleaned = []
+        for p in playlists:
+            if not p:  # Spotify can return null for an unavailable/deleted playlist slot
+                continue
+            cleaned.append({
+                "id": p.get("id"),
+                "name": p.get("name", "Untitled"),
+                "track_count": p.get("tracks", {}).get("total", 0),
+                "image": (p["images"][0]["url"] if p.get("images") else None),
+            })
+        return cleaned
