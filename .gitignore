@@ -7,4 +7,5 @@ env/
 *.sqlite3
 .pytest_cache/
 .vscode/
-.idea/.cache 
+.idea/
+.cache
