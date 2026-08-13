@@ -40,3 +40,15 @@ class OfficialSpotipyClient(SpotifyClient):
         sp = spotipy.Spotify(auth=access_token)
         for i in range(0, len(uris), 100):  # Spotify's 100-URI cap per request
             sp.playlist_add_items(playlist_id, uris[i:i + 100])
+
+    def get_user_playlists(self, access_token: str) -> list[dict]:
+        sp = spotipy.Spotify(auth=access_token)
+        playlists, results = [], sp.current_user_playlists()
+        playlists.extend(results["items"])
+        while results["next"]:
+            results = sp.next(results)
+            playlists.extend(results["items"])
+        return [
+            {"id": p["id"], "name": p["name"], "track_count": p["tracks"]["total"], "image": (p["images"][0]["url"] if p["images"] else None)}
+            for p in playlists
+        ]
