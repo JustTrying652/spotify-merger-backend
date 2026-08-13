@@ -34,12 +34,7 @@ def my_playlists(request):
     token = request.session.get("spotify_token")
     if not token:
         return Response({"error": "Not authenticated"}, status=401)
-    user_id = client.get_current_user_id(token)
-    # NOTE: OfficialSpotipyClient doesn't have a "list user playlists" method yet —
-    # add get_user_playlists() to base.py + spotipy_official.py next; sp.current_user_playlists()
-    # in the underlying spotipy library already does this, just needs wrapping.
-    return Response({"user_id": user_id})
-
+    return Response({"playlists": client.get_user_playlists(token)})
 
 @api_view(["POST"])
 def merge_playlists(request):
