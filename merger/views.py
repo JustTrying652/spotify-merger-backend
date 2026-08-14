@@ -59,13 +59,16 @@ def merge_playlists(request):
     merged = merge_unique(tracks_a, tracks_b)
 
     user_id = client.get_current_user_id(token)
+    playlist_a_name = client.get_playlist_name(token, playlist_a_id)
+    playlist_b_name = client.get_playlist_name(token, playlist_b_id)
+
     new_playlist = client.create_playlist(token, user_id, new_name, description="Created by Playlist Merger")
     client.add_tracks(token, new_playlist["id"], [t.uri for t in merged])
 
     MergeHistory.objects.create(
         spotify_user_id=user_id,
-        source_playlist_a_name=playlist_a_id,
-        source_playlist_b_name=playlist_b_id,
+        source_playlist_a_name=playlist_a_name,
+        source_playlist_b_name=playlist_b_name,
         new_playlist_id=new_playlist["id"],
         new_playlist_name=new_name,
         track_count=len(merged),
