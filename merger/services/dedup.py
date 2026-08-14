@@ -22,12 +22,16 @@ def extract_tracks(raw_playlist_items: list[dict]) -> list[Track]:
     """
     Normalizes raw Spotify API playlist-track payloads into Track objects.
     Skips local files / removed tracks (they show up as track: null).
+
+    NOTE: Spotify's Feb 2026 API migration renamed the nested track key from
+    "track" to "item" on the /playlists/{id}/items endpoint. We check both so
+    this keeps working if a cached/older response shape ever shows up.
     """
     tracks = []
-    for item in raw_playlist_items:
-        t = item.get("track")
-        if not t or not t.get("id"):
-            continue  # local file or unavailable track — no stable ID to dedup on
+    for entry in raw_playlist_items:
+        t = entry.get("item") or entry.get("track")
+        if not t or not t.get("id") or t.get("type") != "track":
+            continue  # local file, podcast episode, or unavailable track
         tracks.append(
             Track(
                 id=t["id"],
