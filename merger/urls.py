@@ -6,5 +6,5 @@ urlpatterns = [
     path("auth/callback/", views.callback, name="spotify-callback"),
     path("playlists/", views.my_playlists, name="my-playlists"),
     path("merge/", views.merge_playlists, name="merge-playlists"),
-    
+    path("duplicates/", views.find_duplicates, name="find-duplicates"),
 ]
