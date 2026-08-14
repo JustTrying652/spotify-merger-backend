@@ -27,9 +27,10 @@ def test_find_overlap():
 
 def test_extract_tracks_skips_local_and_removed():
     raw = [
-        {"track": {"id": "1", "name": "A", "uri": "spotify:track:1", "artists": [{"name": "X"}]}},
-        {"track": None},              # removed track
-        {"track": {"id": None}},      # local file, no Spotify ID
+        {"item": {"id": "1", "name": "A", "uri": "spotify:track:1", "type": "track", "artists": [{"name": "X"}]}},
+        {"item": None},                                  # removed track
+        {"item": {"id": None, "type": "track"}},          # local file, no Spotify ID
+        {"item": {"id": "2", "name": "Ep", "uri": "spotify:episode:2", "type": "episode", "artists": []}},  # podcast episode
     ]
     result = extract_tracks(raw)
     assert len(result) == 1
