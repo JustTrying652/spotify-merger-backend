@@ -36,6 +36,14 @@ def my_playlists(request):
         return Response({"error": "Not authenticated"}, status=401)
     return Response({"playlists": client.get_user_playlists(token)})
 
+@api_view(["GET"])
+def debug_playlist(request, playlist_id):
+    token = request.session.get("spotify_token")
+    if not token:
+        return Response({"error": "Not authenticated"}, status=401)
+    raw = client.get_playlist_tracks(token, playlist_id)
+    return Response({"count": len(raw), "raw_sample": raw[:2] if raw else raw})
+
 @api_view(["POST"])
 def merge_playlists(request):
     token = request.session.get("spotify_token")
