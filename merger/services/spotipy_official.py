@@ -64,3 +64,8 @@ class OfficialSpotipyClient(SpotifyClient):
                 "image": (p["images"][0]["url"] if p.get("images") else None),
             })
         return cleaned
+
+    def get_playlist_name(self, access_token: str, playlist_id: str) -> str:
+        sp = spotipy.Spotify(auth=access_token)
+        result = sp._get(f"playlists/{playlist_id}", params={"fields": "name"})
+        return result.get("name", "Untitled")
