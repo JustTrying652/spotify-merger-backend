@@ -25,10 +25,10 @@ class OfficialSpotipyClient(SpotifyClient):
 
     def get_playlist_tracks(self, access_token: str, playlist_id: str) -> list[dict]:
         sp = spotipy.Spotify(auth=access_token)
-        items, results = [], sp.playlist_items(playlist_id)
+        items, results = [], sp._get(f"playlists/{playlist_id}/items")
         items.extend(results["items"])
-        while results["next"]:
-            results = sp.next(results)
+        while results.get("next"):
+            results = sp._get(results["next"])
             items.extend(results["items"])
         return items
 
@@ -40,18 +40,27 @@ class OfficialSpotipyClient(SpotifyClient):
             "description": description,
         })
 
-
     def add_tracks(self, access_token: str, playlist_id: str, uris: list[str]) -> None:
         sp = spotipy.Spotify(auth=access_token)
         for i in range(0, len(uris), 100):
             sp._post(f"playlists/{playlist_id}/items", payload={"uris": uris[i:i + 100]})
 
-    
-    def get_playlist_tracks(self, access_token: str, playlist_id: str) -> list[dict]:
+    def get_user_playlists(self, access_token: str) -> list[dict]:
         sp = spotipy.Spotify(auth=access_token)
-        items, results = [], sp._get(f"playlists/{playlist_id}/items")
-        items.extend(results["items"])
-        while results.get("next"):
-            results = sp._get(results["next"])
-            items.extend(results["items"])
-        return items
+        playlists, results = [], sp.current_user_playlists()
+        playlists.extend(results["items"])
+        while results["next"]:
+            results = sp.next(results)
+            playlists.extend(results["items"])
+
+        cleaned = []
+        for p in playlists:
+            if not p:
+                continue
+            cleaned.append({
+                "id": p.get("id"),
+                "name": p.get("name", "Untitled"),
+                "track_count": p.get("tracks", {}).get("total", 0),
+                "image": (p["images"][0]["url"] if p.get("images") else None),
+            })
+        return cleaned
