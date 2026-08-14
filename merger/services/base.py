@@ -40,3 +40,7 @@ class SpotifyClient(ABC):
     def get_user_playlists(self, access_token: str) -> list[dict]:
         """Return the current user's playlists (id, name, track count, etc.)."""
         ...
+
+    @abstractmethod
+    def get_playlist_name(self, access_token: str, playlist_id: str) -> str:
+        ...
