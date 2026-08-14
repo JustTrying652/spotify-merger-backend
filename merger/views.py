@@ -10,6 +10,12 @@ from .services.dedup import extract_tracks, merge_unique, find_overlap
 client = OfficialSpotipyClient()
 
 
+def _get_two_playlists_tracks(token, playlist_a_id, playlist_b_id):
+    raw_a = client.get_playlist_tracks(token, playlist_a_id)
+    raw_b = client.get_playlist_tracks(token, playlist_b_id)
+    return extract_tracks(raw_a), extract_tracks(raw_b)
+
+
 @api_view(["GET"])
 def login(request):
     state = str(uuid.uuid4())
@@ -25,7 +31,6 @@ def callback(request):
     token_info = client.exchange_code(code)
     request.session["spotify_token"] = token_info["access_token"]
     request.session["spotify_refresh_token"] = token_info.get("refresh_token")
-    # Redirect back to the React app once that exists; for now, confirm in JSON
     return Response({"status": "logged_in"})
 
 
@@ -35,6 +40,29 @@ def my_playlists(request):
     if not token:
         return Response({"error": "Not authenticated"}, status=401)
     return Response({"playlists": client.get_user_playlists(token)})
+
+
+@api_view(["POST"])
+def find_duplicates(request):
+    """Read-only: shows which tracks appear in both playlists, without creating anything."""
+    token = request.session.get("spotify_token")
+    if not token:
+        return Response({"error": "Not authenticated"}, status=401)
+
+    playlist_a_id = request.data.get("playlist_a_id")
+    playlist_b_id = request.data.get("playlist_b_id")
+    if not playlist_a_id or not playlist_b_id:
+        return Response({"error": "playlist_a_id and playlist_b_id are required"}, status=400)
+
+    tracks_a, tracks_b = _get_two_playlists_tracks(token, playlist_a_id, playlist_b_id)
+    overlap = find_overlap(tracks_a, tracks_b)
+
+    return Response({
+        "duplicate_count": len(overlap),
+        "duplicates": [
+            {"name": t.name, "artists": t.artists, "uri": t.uri} for t in overlap
+        ],
+    })
 
 
 @api_view(["POST"])
@@ -50,11 +78,7 @@ def merge_playlists(request):
     if not playlist_a_id or not playlist_b_id:
         return Response({"error": "playlist_a_id and playlist_b_id are required"}, status=400)
 
-    raw_a = client.get_playlist_tracks(token, playlist_a_id)
-    raw_b = client.get_playlist_tracks(token, playlist_b_id)
-    tracks_a = extract_tracks(raw_a)
-    tracks_b = extract_tracks(raw_b)
-
+    tracks_a, tracks_b = _get_two_playlists_tracks(token, playlist_a_id, playlist_b_id)
     overlap = find_overlap(tracks_a, tracks_b)
     merged = merge_unique(tracks_a, tracks_b)
 
