@@ -9,6 +9,7 @@ from .services.dedup import extract_tracks, merge_unique, find_overlap
 
 client = OfficialSpotipyClient()
 
+FRONTEND_URL = "http://localhost:5173"
 
 def _get_two_playlists_tracks(token, playlist_a_id, playlist_b_id):
     raw_a = client.get_playlist_tracks(token, playlist_a_id)
@@ -31,8 +32,7 @@ def callback(request):
     token_info = client.exchange_code(code)
     request.session["spotify_token"] = token_info["access_token"]
     request.session["spotify_refresh_token"] = token_info.get("refresh_token")
-    return Response({"status": "logged_in"})
-
+    return redirect(FRONTEND_URL)
 
 @api_view(["GET"])
 def my_playlists(request):
