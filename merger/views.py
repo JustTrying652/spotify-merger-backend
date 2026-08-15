@@ -1,4 +1,5 @@
 import uuid
+import json
 from django.shortcuts import redirect
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -39,8 +40,9 @@ def my_playlists(request):
     token = request.session.get("spotify_token")
     if not token:
         return Response({"error": "Not authenticated"}, status=401)
-    return Response({"playlists": client.get_user_playlists(token)})
-
+    playlists = client.get_user_playlists(token)
+    print(json.dumps(playlists, indent=2))  # TEMP DEBUG
+    return Response({"playlists": playlists})
 
 @api_view(["POST"])
 def find_duplicates(request):

@@ -60,7 +60,7 @@ class OfficialSpotipyClient(SpotifyClient):
             cleaned.append({
                 "id": p.get("id"),
                 "name": p.get("name", "Untitled"),
-                "track_count": p.get("tracks", {}).get("total", 0),
+                "track_count": p.get("items", {}).get("total", 0),
                 "image": (p["images"][0]["url"] if p.get("images") else None),
             })
         return cleaned
