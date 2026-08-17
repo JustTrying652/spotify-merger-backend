@@ -62,6 +62,7 @@ class OfficialSpotipyClient(SpotifyClient):
                 "name": p.get("name", "Untitled"),
                 "track_count": p.get("items", {}).get("total", 0),
                 "image": (p["images"][0]["url"] if p.get("images") else None),
+                "owner": p.get("owner", {}).get("display_name", "Unknown"),
             })
         return cleaned
 
