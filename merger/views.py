@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from .models import MergeHistory
 from .services.spotipy_official import OfficialSpotipyClient
-from .services.dedup import extract_tracks, merge_unique, find_overlap
+from .services.dedup import extract_tracks, merge_unique, find_overlap, find_near_duplicates
 
 client = OfficialSpotipyClient()
 
@@ -46,7 +46,6 @@ def my_playlists(request):
 
 @api_view(["POST"])
 def find_duplicates(request):
-    """Read-only: shows which tracks appear in both playlists, without creating anything."""
     token = request.session.get("spotify_token")
     if not token:
         return Response({"error": "Not authenticated"}, status=401)
@@ -58,11 +57,21 @@ def find_duplicates(request):
 
     tracks_a, tracks_b = _get_two_playlists_tracks(token, playlist_a_id, playlist_b_id)
     overlap = find_overlap(tracks_a, tracks_b)
+    near_dupes = find_near_duplicates(tracks_a, tracks_b)
 
     return Response({
         "duplicate_count": len(overlap),
         "duplicates": [
-            {"name": t.name, "artists": t.artists, "uri": t.uri} for t in overlap
+            {"name": t.name, "artists": t.artists, "uri": t.uri, "image": t.album_image}
+            for t in overlap
+        ],
+        "near_duplicate_count": len(near_dupes),
+        "near_duplicates": [
+            {
+                "a": {"name": a.name, "artists": a.artists, "image": a.album_image},
+                "b": {"name": b.name, "artists": b.artists, "image": b.album_image},
+            }
+            for a, b in near_dupes
         ],
     })
 
