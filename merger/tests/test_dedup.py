@@ -1,8 +1,8 @@
-from merger.services.dedup import Track, merge_unique, find_overlap, extract_tracks
+from merger.services.dedup import Track, merge_unique, find_overlap, extract_tracks, find_near_duplicates
 
 
-def _t(id_, name="Song"):
-    return Track(id=id_, name=name, artists="Artist", uri=f"spotify:track:{id_}")
+def _t(id_, name="Song", artists="Artist"):
+    return Track(id=id_, name=name, artists=artists, uri=f"spotify:track:{id_}")
 
 
 def test_merge_unique_removes_duplicates():
@@ -28,10 +28,31 @@ def test_find_overlap():
 def test_extract_tracks_skips_local_and_removed():
     raw = [
         {"item": {"id": "1", "name": "A", "uri": "spotify:track:1", "type": "track", "artists": [{"name": "X"}]}},
-        {"item": None},                                  # removed track
-        {"item": {"id": None, "type": "track"}},          # local file, no Spotify ID
-        {"item": {"id": "2", "name": "Ep", "uri": "spotify:episode:2", "type": "episode", "artists": []}},  # podcast episode
+        {"item": None},
+        {"item": {"id": None, "type": "track"}},
+        {"item": {"id": "2", "name": "Ep", "uri": "spotify:episode:2", "type": "episode", "artists": []}},
     ]
     result = extract_tracks(raw)
     assert len(result) == 1
     assert result[0].id == "1"
+
+
+def test_find_near_duplicates_catches_remaster():
+    a = [_t("1", name="Yesterday", artists="The Beatles")]
+    b = [_t("2", name="Yesterday - 2009 Remaster", artists="The Beatles")]
+    pairs = find_near_duplicates(a, b)
+    assert len(pairs) == 1
+    assert pairs[0][0].id == "1"
+    assert pairs[0][1].id == "2"
+
+
+def test_find_near_duplicates_excludes_exact_matches():
+    a = [_t("1", name="Song", artists="Artist")]
+    b = [_t("1", name="Song", artists="Artist")]  # exact same track ID
+    assert find_near_duplicates(a, b) == []
+
+
+def test_find_near_duplicates_ignores_different_songs_same_artist():
+    a = [_t("1", name="Song A", artists="Artist")]
+    b = [_t("2", name="Song B", artists="Artist")]
+    assert find_near_duplicates(a, b) == []
