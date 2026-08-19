@@ -85,6 +85,7 @@ def merge_playlists(request):
     playlist_a_id = request.data.get("playlist_a_id")
     playlist_b_id = request.data.get("playlist_b_id")
     new_name = request.data.get("new_name", "Merged Playlist")
+    is_public = request.data.get("public", False)
 
     if not playlist_a_id or not playlist_b_id:
         return Response({"error": "playlist_a_id and playlist_b_id are required"}, status=400)
@@ -97,7 +98,7 @@ def merge_playlists(request):
     playlist_a_name = client.get_playlist_name(token, playlist_a_id)
     playlist_b_name = client.get_playlist_name(token, playlist_b_id)
 
-    new_playlist = client.create_playlist(token, user_id, new_name, description="Created by Playlist Merger")
+    new_playlist = client.create_playlist(token, user_id, new_name, description="Created by Playlist Merger", public=is_public)
     client.add_tracks(token, new_playlist["id"], [t.uri for t in merged])
 
     MergeHistory.objects.create(
