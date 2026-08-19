@@ -32,11 +32,11 @@ class OfficialSpotipyClient(SpotifyClient):
             items.extend(results["items"])
         return items
 
-    def create_playlist(self, access_token: str, user_id: str, name: str, description: str = "") -> dict:
+    def create_playlist(self, access_token: str, user_id: str, name: str, description: str = "", public: bool = False) -> dict:
         sp = spotipy.Spotify(auth=access_token)
         return sp._post("me/playlists", payload={
             "name": name,
-            "public": False,
+            "public": public,
             "description": description,
         })
 
