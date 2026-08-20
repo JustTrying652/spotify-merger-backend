@@ -7,4 +7,5 @@ urlpatterns = [
     path("playlists/", views.my_playlists, name="my-playlists"),
     path("merge/", views.merge_playlists, name="merge-playlists"),
     path("duplicates/", views.find_duplicates, name="find-duplicates"),
+    path("preview/", views.preview_merge, name="preview-merge"),
 ]
