@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from .models import MergeHistory
 from .services.spotipy_official import OfficialSpotipyClient
-from .services.dedup import extract_tracks, merge_unique, find_overlap, find_near_duplicates
+from .services.dedup import extract_tracks, merge_unique, find_overlap, find_near_duplicates, format_duration
 
 client = OfficialSpotipyClient()
 
