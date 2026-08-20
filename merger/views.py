@@ -117,3 +117,26 @@ def merge_playlists(request):
         "total_tracks": len(merged),
         "duplicates_removed": len(overlap),
     })
+
+@api_view(["POST"])
+def preview_merge(request):
+    """Read-only: computes what a merge would produce, without creating anything."""
+    token = request.session.get("spotify_token")
+    if not token:
+        return Response({"error": "Not authenticated"}, status=401)
+
+    playlist_a_id = request.data.get("playlist_a_id")
+    playlist_b_id = request.data.get("playlist_b_id")
+    if not playlist_a_id or not playlist_b_id:
+        return Response({"error": "playlist_a_id and playlist_b_id are required"}, status=400)
+
+    tracks_a, tracks_b = _get_two_playlists_tracks(token, playlist_a_id, playlist_b_id)
+    overlap = find_overlap(tracks_a, tracks_b)
+    merged = merge_unique(tracks_a, tracks_b)
+    total_duration_ms = sum(t.duration_ms for t in merged)
+
+    return Response({
+        "total_tracks": len(merged),
+        "duplicates_removed": len(overlap),
+        "total_duration": format_duration(total_duration_ms),
+    })
