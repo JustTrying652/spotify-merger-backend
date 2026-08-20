@@ -90,3 +90,11 @@ def find_near_duplicates(playlist_a: list[Track], playlist_b: list[Track]) -> li
             pairs.append((t, match))
             seen_a_ids.add(t.id)
     return pairs
+
+def format_duration(total_ms: int) -> str:
+    total_seconds = total_ms // 1000
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, _ = divmod(remainder, 60)
+    if hours:
+        return f"{hours}h {minutes}m"
+    return f"{minutes}m"
