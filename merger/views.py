@@ -47,10 +47,11 @@ def my_playlists(request):
 
 @api_view(["GET"])
 def export_playlist(request, playlist_id):
+    print(f"EXPORT VIEW HIT: playlist_id={playlist_id}, format={request.GET.get('format')}")  # TEMP DEBUG
     token = request.session.get("spotify_token")
     if not token:
         return Response({"error": "Not authenticated"}, status=401)
-
+    ...
     fmt = request.GET.get("format", "json")
     raw = client.get_playlist_tracks(token, playlist_id)
     tracks = extract_tracks(raw)
