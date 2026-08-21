@@ -1,5 +1,7 @@
+import csv
 import re
 from dataclasses import dataclass
+import io
 
 
 @dataclass(frozen=True)
@@ -98,3 +100,12 @@ def format_duration(total_ms: int) -> str:
     if hours:
         return f"{hours}h {minutes}m"
     return f"{minutes}m"
+
+
+def tracks_to_csv(tracks: list[Track]) -> str:
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["name", "artists", "uri", "duration_ms"])
+    for t in tracks:
+        writer.writerow([t.name, t.artists, t.uri, t.duration_ms])
+    return output.getvalue()
