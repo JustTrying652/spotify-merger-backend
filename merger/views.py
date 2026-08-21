@@ -1,6 +1,7 @@
 import uuid
 import json
 from django.shortcuts import redirect
+from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -43,6 +44,33 @@ def my_playlists(request):
     playlists = client.get_user_playlists(token)
     print(json.dumps(playlists, indent=2))  # TEMP DEBUG
     return Response({"playlists": playlists})
+
+@api_view(["GET"])
+def export_playlist(request, playlist_id):
+    token = request.session.get("spotify_token")
+    if not token:
+        return Response({"error": "Not authenticated"}, status=401)
+
+    fmt = request.GET.get("format", "json")
+    raw = client.get_playlist_tracks(token, playlist_id)
+    tracks = extract_tracks(raw)
+    playlist_name = client.get_playlist_name(token, playlist_id)
+
+    if fmt == "csv":
+        from .services.dedup import tracks_to_csv
+        csv_content = tracks_to_csv(tracks)
+        response = HttpResponse(csv_content, content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="{playlist_name}.csv"'
+        return response
+
+    return Response({
+        "playlist_name": playlist_name,
+        "track_count": len(tracks),
+        "tracks": [
+            {"name": t.name, "artists": t.artists, "uri": t.uri, "duration_ms": t.duration_ms}
+            for t in tracks
+        ],
+    })
 
 @api_view(["POST"])
 def find_duplicates(request):
