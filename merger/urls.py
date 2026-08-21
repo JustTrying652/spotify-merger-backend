@@ -8,4 +8,5 @@ urlpatterns = [
     path("merge/", views.merge_playlists, name="merge-playlists"),
     path("duplicates/", views.find_duplicates, name="find-duplicates"),
     path("preview/", views.preview_merge, name="preview-merge"),
+    path("export/<str:playlist_id>/", views.export_playlist, name="export-playlist"),
 ]
