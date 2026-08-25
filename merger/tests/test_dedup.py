@@ -56,3 +56,17 @@ def test_find_near_duplicates_ignores_different_songs_same_artist():
     a = [_t("1", name="Song A", artists="Artist")]
     b = [_t("2", name="Song B", artists="Artist")]
     assert find_near_duplicates(a, b) == []
+
+def test_apply_selections_excludes_by_id():
+    merged = [_t("1"), _t("2"), _t("3")]
+    result = apply_selections(merged, {"2"}, [])
+    assert [t.id for t in result] == ["1", "3"]
+
+
+def test_apply_selections_near_dup_keep_a_drops_b():
+    a = _t("1", name="Song")
+    b = _t("2", name="Song Remaster")
+    merged = [a, b]
+    resolutions = [{"a_uri": a.uri, "b_uri": b.uri, "keep": "a"}]
+    result = apply_selections(merged, set(), resolutions)
+    assert [t.id for t in result] == ["1"]
