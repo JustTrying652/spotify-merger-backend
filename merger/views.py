@@ -103,49 +103,6 @@ def find_duplicates(request):
         ],
     })
 
-
-@api_view(["POST"])
-def merge_playlists(request):
-    token = request.session.get("spotify_token")
-    if not token:
-        return Response({"error": "Not authenticated"}, status=401)
-
-    playlist_a_id = request.data.get("playlist_a_id")
-    playlist_b_id = request.data.get("playlist_b_id")
-    new_name = request.data.get("new_name", "Merged Playlist")
-    is_public = request.data.get("public", False)
-
-    if not playlist_a_id or not playlist_b_id:
-        return Response({"error": "playlist_a_id and playlist_b_id are required"}, status=400)
-
-    tracks_a, tracks_b = _get_two_playlists_tracks(token, playlist_a_id, playlist_b_id)
-    overlap = find_overlap(tracks_a, tracks_b)
-    merged = merge_unique(tracks_a, tracks_b)
-
-    user_id = client.get_current_user_id(token)
-    playlist_a_name = client.get_playlist_name(token, playlist_a_id)
-    playlist_b_name = client.get_playlist_name(token, playlist_b_id)
-
-    new_playlist = client.create_playlist(token, user_id, new_name, description="Created by Playlist Merger", public=is_public)
-    client.add_tracks(token, new_playlist["id"], [t.uri for t in merged])
-
-    MergeHistory.objects.create(
-        spotify_user_id=user_id,
-        source_playlist_a_name=playlist_a_name,
-        source_playlist_b_name=playlist_b_name,
-        new_playlist_id=new_playlist["id"],
-        new_playlist_name=new_name,
-        track_count=len(merged),
-        duplicates_removed=len(overlap),
-    )
-
-    return Response({
-        "new_playlist_id": new_playlist["id"],
-        "new_playlist_url": new_playlist.get("external_urls", {}).get("spotify"),
-        "total_tracks": len(merged),
-        "duplicates_removed": len(overlap),
-    })
-
 @api_view(["POST"])
 def preview_merge(request):
     token = request.session.get("spotify_token")
@@ -170,4 +127,49 @@ def preview_merge(request):
         "total_tracks": len(final),
         "duplicates_removed": len(overlap),
         "total_duration": format_duration(total_duration_ms),
+    })
+
+@api_view(["POST"])
+def merge_playlists(request):
+    token = request.session.get("spotify_token")
+    if not token:
+        return Response({"error": "Not authenticated"}, status=401)
+
+    playlist_a_id = request.data.get("playlist_a_id")
+    playlist_b_id = request.data.get("playlist_b_id")
+    new_name = request.data.get("new_name", "Merged Playlist")
+    is_public = request.data.get("public", False)
+    excluded_ids = set(request.data.get("excluded_ids", []))
+    near_duplicate_resolutions = request.data.get("near_duplicate_resolutions", [])
+
+    if not playlist_a_id or not playlist_b_id:
+        return Response({"error": "playlist_a_id and playlist_b_id are required"}, status=400)
+
+    tracks_a, tracks_b = _get_two_playlists_tracks(token, playlist_a_id, playlist_b_id)
+    overlap = find_overlap(tracks_a, tracks_b)
+    merged = merge_unique(tracks_a, tracks_b)
+    final = apply_selections(merged, excluded_ids, near_duplicate_resolutions)
+
+    user_id = client.get_current_user_id(token)
+    playlist_a_name = client.get_playlist_name(token, playlist_a_id)
+    playlist_b_name = client.get_playlist_name(token, playlist_b_id)
+
+    new_playlist = client.create_playlist(token, user_id, new_name, description="Created by Playlist Merger", public=is_public)
+    client.add_tracks(token, new_playlist["id"], [t.uri for t in final])
+
+    MergeHistory.objects.create(
+        spotify_user_id=user_id,
+        source_playlist_a_name=playlist_a_name,
+        source_playlist_b_name=playlist_b_name,
+        new_playlist_id=new_playlist["id"],
+        new_playlist_name=new_name,
+        track_count=len(final),
+        duplicates_removed=len(overlap),
+    )
+
+    return Response({
+        "new_playlist_id": new_playlist["id"],
+        "new_playlist_url": new_playlist.get("external_urls", {}).get("spotify"),
+        "total_tracks": len(final),
+        "duplicates_removed": len(overlap),
     })
