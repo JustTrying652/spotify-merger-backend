@@ -109,3 +109,29 @@ def tracks_to_csv(tracks: list[Track]) -> str:
     for t in tracks:
         writer.writerow([t.name, t.artists, t.uri, t.duration_ms])
     return output.getvalue()
+
+def apply_selections(
+    merged: list[Track],
+    excluded_ids: set[str],
+    near_duplicate_resolutions: list[dict],
+) -> list[Track]:
+    """
+    Applies user choices on top of the baseline merged list:
+    - excluded_ids: exact-duplicate tracks the user chose to leave out entirely
+    - near_duplicate_resolutions: [{"a_uri": ..., "b_uri": ..., "keep": "a"|"b"|"both"}]
+      "a" drops b's version, "b" drops a's version, "both" (or missing) keeps both.
+    """
+    result = [t for t in merged if t.id not in excluded_ids]
+
+    exclude_uris = set()
+    for res in near_duplicate_resolutions:
+        keep = res.get("keep")
+        if keep == "a":
+            exclude_uris.add(res.get("b_uri"))
+        elif keep == "b":
+            exclude_uris.add(res.get("a_uri"))
+
+    if exclude_uris:
+        result = [t for t in result if t.uri not in exclude_uris]
+
+    return result
