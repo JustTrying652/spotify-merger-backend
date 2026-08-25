@@ -118,14 +118,13 @@ def preview_merge(request):
         return Response({"error": "playlist_a_id and playlist_b_id are required"}, status=400)
 
     tracks_a, tracks_b = _get_two_playlists_tracks(token, playlist_a_id, playlist_b_id)
-    overlap = find_overlap(tracks_a, tracks_b)
     merged = merge_unique(tracks_a, tracks_b)
     final = apply_selections(merged, excluded_ids, near_duplicate_resolutions)
     total_duration_ms = sum(t.duration_ms for t in final)
 
     return Response({
         "total_tracks": len(final),
-        "duplicates_removed": len(overlap),
+        "duplicates_removed": len(merged) - len(final),  # actual reduction from user's selections
         "total_duration": format_duration(total_duration_ms),
     })
 
@@ -171,5 +170,5 @@ def merge_playlists(request):
         "new_playlist_id": new_playlist["id"],
         "new_playlist_url": new_playlist.get("external_urls", {}).get("spotify"),
         "total_tracks": len(final),
-        "duplicates_removed": len(overlap),
+        "duplicates_removed": len(merged) - len(final),
     })
