@@ -70,3 +70,11 @@ def test_apply_selections_near_dup_keep_a_drops_b():
     resolutions = [{"a_uri": a.uri, "b_uri": b.uri, "keep": "a"}]
     result = apply_selections(merged, set(), resolutions)
     assert [t.id for t in result] == ["1"]
+
+def test_apply_selections_near_dup_keep_both_changes_nothing():
+    a = _t("1")
+    b = _t("2")
+    merged = [a, b]
+    resolutions = [{"a_uri": a.uri, "b_uri": b.uri, "keep": "both"}]
+    result = apply_selections(merged, set(), resolutions)
+    assert len(result) == 2
