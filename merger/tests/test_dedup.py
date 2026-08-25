@@ -1,4 +1,4 @@
-from merger.services.dedup import Track, merge_unique, find_overlap, extract_tracks, find_near_duplicates
+from merger.services.dedup import Track, merge_unique, find_overlap, extract_tracks, find_near_duplicates, apply_selections
 
 
 def _t(id_, name="Song", artists="Artist"):
