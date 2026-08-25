@@ -96,8 +96,8 @@ def find_duplicates(request):
         "near_duplicate_count": len(near_dupes),
         "near_duplicates": [
             {
-                "a": {"name": a.name, "artists": a.artists, "image": a.album_image},
-                "b": {"name": b.name, "artists": b.artists, "image": b.album_image},
+                "a": {"name": a.name, "artists": a.artists, "image": a.album_image, "uri": a.uri},
+                "b": {"name": b.name, "artists": b.artists, "image": b.album_image, "uri": b.uri},
             }
             for a, b in near_dupes
         ],
