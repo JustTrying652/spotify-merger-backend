@@ -172,3 +172,12 @@ def merge_playlists(request):
         "total_tracks": len(final),
         "duplicates_removed": len(merged) - len(final),
     })
+
+@api_view(["DELETE"])
+def undo_merge(request, playlist_id):
+    token = request.session.get("spotify_token")
+    if not token:
+        return Response({"error": "Not authenticated"}, status=401)
+    playlist_uri = f"spotify:playlist:{playlist_id}"
+    client.delete_playlist(token, playlist_id, playlist_uri)
+    return Response({"status": "deleted"})
