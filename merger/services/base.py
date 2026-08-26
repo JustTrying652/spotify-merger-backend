@@ -44,3 +44,8 @@ class SpotifyClient(ABC):
     @abstractmethod
     def get_playlist_name(self, access_token: str, playlist_id: str) -> str:
         ...
+
+    @abstractmethod
+    def delete_playlist(self, access_token: str, playlist_id: str, playlist_uri: str) -> None:
+        """Removes a playlist the user owns (implemented as unfollowing it, per Spotify's model)."""
+        ...
