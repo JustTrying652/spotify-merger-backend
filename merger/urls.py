@@ -9,4 +9,5 @@ urlpatterns = [
     path("duplicates/", views.find_duplicates, name="find-duplicates"),
     path("preview/", views.preview_merge, name="preview-merge"),
     path("export/<str:playlist_id>/", views.export_playlist, name="export-playlist"),
+    path("undo/<str:playlist_id>/", views.undo_merge, name="undo-merge"),
 ]
