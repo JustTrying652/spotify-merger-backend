@@ -70,3 +70,7 @@ class OfficialSpotipyClient(SpotifyClient):
         sp = spotipy.Spotify(auth=access_token)
         result = sp._get(f"playlists/{playlist_id}", params={"fields": "name"})
         return result.get("name", "Untitled")
+
+    def delete_playlist(self, access_token: str, playlist_id: str, playlist_uri: str) -> None:
+        sp = spotipy.Spotify(auth=access_token)
+        sp._delete("me/tracks", payload={"uris": [playlist_uri]})
