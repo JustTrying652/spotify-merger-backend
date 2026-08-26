@@ -10,7 +10,7 @@ class OfficialSpotipyClient(SpotifyClient):
             client_id=settings.SPOTIFY_CLIENT_ID,
             client_secret=settings.SPOTIFY_CLIENT_SECRET,
             redirect_uri=settings.SPOTIFY_REDIRECT_URI,
-            scope="playlist-read-private playlist-modify-public playlist-modify-private user-library-modify",
+            scope="playlist-read-private playlist-modify-public playlist-modify-private",
         )
 
     def get_auth_url(self, state: str) -> str:
