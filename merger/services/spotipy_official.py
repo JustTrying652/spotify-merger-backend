@@ -73,4 +73,4 @@ class OfficialSpotipyClient(SpotifyClient):
 
     def delete_playlist(self, access_token: str, playlist_id: str, playlist_uri: str) -> None:
         sp = spotipy.Spotify(auth=access_token)
-        sp._delete("me/tracks", payload={"uris": [playlist_uri]})
+        sp._delete(f"playlists/{playlist_id}/followers")
